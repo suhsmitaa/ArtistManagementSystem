@@ -1,8 +1,8 @@
-CREATE DATABASE  IF NOT EXISTS `artist_management_database` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `artist_management_database`;
+CREATE DATABASE  IF NOT EXISTS `artist_management_system` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `artist_management_system`;
 -- MySQL dump 10.13  Distrib 8.0.38, for macos14 (x86_64)
 --
--- Host: 127.0.0.1    Database: artist_management_database
+-- Host: 127.0.0.1    Database: artist_management_system
 -- ------------------------------------------------------
 -- Server version	9.0.1
 
@@ -18,13 +18,13 @@ USE `artist_management_database`;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `artists`
+-- Table structure for table `artist`
 --
 
-DROP TABLE IF EXISTS `artists`;
+DROP TABLE IF EXISTS `artist`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `artists` (
+CREATE TABLE `artist` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `dob` datetime DEFAULT NULL,
@@ -34,18 +34,17 @@ CREATE TABLE `artists` (
   `no_of_albums_released` int DEFAULT NULL,
   `createdAt` datetime DEFAULT CURRENT_TIMESTAMP,
   `updatedAt` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `idx_artist_name` (`name`)
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `artists`
+-- Dumping data for table `artist`
 --
 
-LOCK TABLES `artists` WRITE;
-/*!40000 ALTER TABLE `artists` DISABLE KEYS */;
-/*!40000 ALTER TABLE `artists` ENABLE KEYS */;
+LOCK TABLES `artist` WRITE;
+/*!40000 ALTER TABLE `artist` DISABLE KEYS */;
+/*!40000 ALTER TABLE `artist` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -56,15 +55,16 @@ DROP TABLE IF EXISTS `music`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `music` (
-  `artistId` int DEFAULT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
   `title` varchar(255) NOT NULL,
   `album_name` varchar(255) DEFAULT NULL,
   `genre` enum('rnb','country','classic','rock','jazz') DEFAULT NULL,
+  `artist_id` int DEFAULT NULL,
   `createdAt` datetime DEFAULT CURRENT_TIMESTAMP,
   `updatedAt` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  KEY `idx_music_title` (`title`),
-  KEY `idx_music_artist` (`artistId`),
-  CONSTRAINT `music_ibfk_1` FOREIGN KEY (`artistId`) REFERENCES `artists` (`id`)
+  PRIMARY KEY (`id`),
+  KEY `artist_id` (`artist_id`),
+  CONSTRAINT `music_ibfk_1` FOREIGN KEY (`artist_id`) REFERENCES `artist` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -94,12 +94,12 @@ CREATE TABLE `user` (
   `dob` datetime DEFAULT NULL,
   `gender` enum('m','f','o') DEFAULT NULL,
   `address` varchar(255) DEFAULT NULL,
+  `role` enum('super_admin','artist_manager','artist') NOT NULL,
   `createdAt` datetime DEFAULT CURRENT_TIMESTAMP,
   `updatedAt` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `email` (`email`),
-  KEY `idx_user_email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -108,15 +108,16 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
+INSERT INTO `user` VALUES (1,'Johns','Doe','johndoes@example.com','scrypt:32768:8:1$Fmfqce874vMIaDmv$8a3f7c0143381388fbf11148c01e433aa76678ba92493cfd85cd3ae61eee4d822b52097c63a553b61a76827e0f5bf92406aa37fe3ea56ee552ac136da628042d','1234567890','1990-01-01 00:00:00','m','123 Main St','artist_manager','2024-09-29 20:39:33','2024-09-29 20:39:33');
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
--- Dumping events for database 'artist_management_database'
+-- Dumping events for database 'artist_management_system'
 --
 
 --
--- Dumping routines for database 'artist_management_database'
+-- Dumping routines for database 'artist_management_system'
 --
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -128,4 +129,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-09-23 13:15:25
+-- Dump completed on 2024-09-30  2:57:06
