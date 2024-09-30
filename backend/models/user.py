@@ -1,116 +1,87 @@
+# models/user.py
 from utils.db import execute_query
+from datetime import datetime
 
 class User:
- 
-    def __init__(self,id,firstname,lastname,email,password,phone=None,dob=None,gender=None,address=None):
-        self.id=id
-        self.firstname=firstname
-        self.lastname=lastname
-        self.email=email
-        self.password=password
-        self.phone=phone
-        self.dob=dob
-        self.gender=gender
-        self.address=address
+    def __init__(self, id=None, first_name=None, last_name=None, email=None, password=None, 
+                 phone=None, dob=None, gender=None, address=None, role=None, 
+                 createdAt=None, updatedAt=None):
+        self.id = id
+        self.first_name = first_name
+        self.last_name = last_name
+        self.email = email
+        self.password = password
+        self.phone = phone
+        self.dob = dob
+        self.gender = gender
+        self.address = address
+        self.role = role
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
 
-    @classmethod
-    def create(cls,user):
-        query = """Insert into user (firstname,lastname,email,password,phone,dob,gender,address) 
-                Values(%s,%s,%s,%s,%s,%s,%s,%s)"""
-        params =(user.firstname,user.lastname,user.email,user.password,user.phone,user.dob,user.gender,user.address)
-        return execute_query(query,params)
-    
+    @staticmethod
+    def create(first_name, last_name, email, password, role, phone=None, dob=None, gender=None, address=None):
+        query = """
+        INSERT INTO user (first_name, last_name, email, password, role, phone, dob, gender, address)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        params = (first_name, last_name, email, password, role, phone, dob, gender, address)
+        return execute_query(query, params)
+
     @staticmethod
     def get_by_id(user_id):
-        query ="Select * from user where id = %s"
+        query = "SELECT * FROM user WHERE id = %s"
         params = (user_id,)
-        result = execute_query(query,params)
+        result = execute_query(query, params, fetch_one=True)
+        return User(*result) if result else None
 
+    @classmethod
+    def get_by_username(cls,first_name):
+        query = "SELECT * FROM user WHERE first_name = %s"
+        params = (first_name,)
+        result = execute_query(query, params, fetch_one=True)  
+        # return User(*result)
         if result:
-            return User(*result[0]) if result else None
+            return cls(**result) 
         else:
-            return None
-       
+            None
+
     @staticmethod
-    def get_by_username(username):
-        query ="Select * from user where firstname = %s"
-        params = (username,)
-        result = execute_query(query,params)
-
-        if result:
-            return User(*result[0]) if result else None
-        else:
-            return None
-        
-    @classmethod
-    def get_by_all(cls,page, per_page):
+    def get_all(page=1, per_page=10):
         offset = (page - 1) * per_page
-        query ="Select * from user LIMIT %s OFFSET %s"
-        params = (page,offset)
-        result= execute_query(query,params)
+        query = "SELECT * FROM user LIMIT %s OFFSET %s"
+        params = (per_page, offset)
+        results = execute_query(query, params, fetch_all=True)
+        return [User(*result) for result in results]
 
-        if result :
-            return [cls(*row) for row in result]
-        else:
-            return []
-        
-        
-    @classmethod
-    def update(cls,user_id,firstname=None,lastname=None,email=None,password=None,phone=None,dob=None,gender=None,address=None):
-        query= "Update user SET"
-        field =[]
-        params=[]
+    def update(self):
+        query = """
+        UPDATE user 
+        SET first_name = %s, last_name = %s, email = %s, password = %s, 
+            phone = %s, dob = %s, gender = %s, address = %s, role = %s
+        WHERE id = %s
+        """
+        params = (self.first_name, self.last_name, self.email, self.password,
+                  self.phone, self.dob, self.gender, self.address, self.role, self.id)
+        return execute_query(query, params)
 
-        if firstname:
-            field.append("firstname = %s")
-            params.append(firstname)
-        if lastname:
-            field.append("lastname = %s")
-            params.append(lastname)
-        if email:
-            field.append("email = %s")
-            params.append(email)
-        if phone:
-            field.append("phone = %s")
-            params.append(phone)
-        if dob:
-            field.append("dob = %s")
-            params.append(dob)
-        if gender:
-            field.append("gender = %s")
-            params.append(gender)
-        if address:
-            field.append("address = %s")
-            params.append(address)
-        
-        if not field:
-            return None
-        
-
-        query += ", ".join(field) + " where id = %s"
-        params.append(user_id)
-
-        result = execute_query(query,params)
-
-        if result :
-            return True
-        else:
-            return False
-
-        
-    @classmethod
-    def delete(cls,user_id):
-        query = "Delete from user where id =  %s"
+    @staticmethod
+    def delete(user_id):
+        query = "DELETE FROM user WHERE id = %s"
         params = (user_id,)
-        
-        result =execute_query(query,params)
+        return execute_query(query, params)
 
-        if result:
-             return True
-        else:
-            return False
-        
-    
-    
-    
-
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'email': self.email,
+            'phone': self.phone,
+            'dob': self.dob.isoformat() if self.dob else None,
+            'gender': self.gender,
+            'address': self.address,
+            'role': self.role,
+            'createdAt': self.createdAt.isoformat() if self.createdAt else None,
+            'updatedAt': self.updatedAt.isoformat() if self.updatedAt else None
+        }
