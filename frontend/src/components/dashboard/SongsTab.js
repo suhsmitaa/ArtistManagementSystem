@@ -11,7 +11,7 @@ const SongsTab = () => {
   useEffect(() => {
     const fetchSongs = async () => {
       try {
-        const response = await axios.get(`/api/artists/${artistId}/songs`);
+        const response = await axios.get(`http://127.0.0.1:5000/artists/${artistId}/songs`);
         setSongs(response.data);
       } catch (error) {
         console.error('Failed to fetch songs:', error);
@@ -23,7 +23,7 @@ const SongsTab = () => {
 
   const handleCreateSong = async () => {
     try {
-      const response = await axios.post(`/api/artists/${artistId}/songs`, newSong);
+      const response = await axios.post(`http://127.0.0.1:5000/artists/${artistId}/songs`, newSong);
       setSongs([...songs, response.data]);
       setNewSong({ title: '', genre: '', releaseDate: '' });
     } catch (error) {
@@ -34,7 +34,7 @@ const SongsTab = () => {
   const handleUpdateSong = async (songId) => {
     try {
       const updatedSong = { ...songs.find(song => song.id === songId), ...newSong };
-      const response = await axios.put(`/api/artists/${artistId}/songs/${songId}`, updatedSong);
+      const response = await axios.put(`http://127.0.0.1:5000/artists/${artistId}/songs/${songId}`, updatedSong);
       setSongs(songs.map(song => (song.id === songId ? response.data : song)));
       setEditMode(null);
       setNewSong({ title: '', genre: '', releaseDate: '' });
@@ -45,7 +45,7 @@ const SongsTab = () => {
 
   const handleDeleteSong = async (songId) => {
     try {
-      await axios.delete(`/api/artists/${artistId}/songs/${songId}`);
+      await axios.delete(`http://127.0.0.1:5000/artists/${artistId}/songs/${songId}`);
       setSongs(songs.filter(song => song.id !== songId));
     } catch (error) {
       console.error('Failed to delete song:', error);
