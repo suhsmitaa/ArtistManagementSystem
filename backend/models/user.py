@@ -46,13 +46,28 @@ class User:
         else:
             None
 
+    @classmethod
+    def get_by_first_name_and_email(cls, first_name, email):
+        query = "SELECT * FROM user WHERE first_name = %s AND email = %s"
+        params = (first_name, email)
+        result = execute_query(query, params, fetch_one=True)  
+        if result:
+            return cls(**result)  
+        return None  
+
+
     @staticmethod
     def get_all(page=1, per_page=10):
         offset = (page - 1) * per_page
         query = "SELECT * FROM user LIMIT %s OFFSET %s"
         params = (per_page, offset)
+    
         results = execute_query(query, params, fetch_all=True)
-        return [User(*result) for result in results]
+        if results is None:
+            return []
+
+        return [User(**result) for result in results] 
+
 
     def update(self):
         query = """

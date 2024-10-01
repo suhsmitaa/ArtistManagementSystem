@@ -1,9 +1,10 @@
-from flask import Blueprint, request, jsonify, current_app , session
+from flask import Blueprint, request, jsonify, current_app, session
 from models.user import User
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps
+import logging
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -28,13 +29,16 @@ def token_required(f):
 @bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
+
+
     if not all(key in data for key in ('first_name', 'last_name', 'email', 'password', 'role')):
         return jsonify({'message': 'Missing required fields'}), 400
 
     hashed_password = generate_password_hash(data['password'])
     
     try:
-        User.create(
+
+        new_user = User.create(
             first_name=data['first_name'],
             last_name=data['last_name'],
             email=data['email'],
@@ -45,12 +49,18 @@ def register():
             gender=data.get('gender'),
             address=data.get('address')
         )
-        logging.info(f"User created: {new_user}")
-        return jsonify({'message': 'User created successfully'}), 201
+        
+    
+        if new_user:
+            return jsonify({'message': 'User created successfully'}), 201
+        else:
+            logging.warning("User creation returned None.")
+            return jsonify({'message': 'User creation failed'}), 500
+
     except Exception as e:
+        logging.error(f"Error during user creation: {str(e)}")
         return jsonify({'message': str(e)}), 400
 
-import logging
 
 @bp.route('/login', methods=['POST'])
 def login():
@@ -60,8 +70,8 @@ def login():
     
     user = User.get_by_username(data['first_name'])
     
-    logging.info(f"User retrieved: {user}")
-    logging.info(f"User retrieved: {user.first_name}, {user.email}, {user.password}")
+    if user:
+        logging.info(f"User retrieved: {user.first_name}, {user.email}")
 
     if user and check_password_hash(user.password, data['password']):
         token = jwt.encode({
@@ -74,8 +84,6 @@ def login():
     
     logging.warning(f"Invalid credentials for user: {data['first_name']}")
     return jsonify({'message': 'Invalid credentials'}), 401
-
-
 
 @bp.route('/logout', methods=['POST'])
 def logout():
